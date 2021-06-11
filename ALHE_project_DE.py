@@ -5,6 +5,7 @@ import math
 
 # load basic population, seed list and parameters
 pop = np.loadtxt('M_1_D10.txt')
+pop_next = pop.copy()
 seeds = np.loadtxt('Rand_Seeds.txt')
 popsize = len(pop)
 dimensions = len(pop[0])
@@ -19,10 +20,14 @@ errors = []
 # differential evolution algorithm DE/rand/1/bin
 
 # reference algorithm
-def de_ref():
+def de_ref(pop, pop_next):
 	curFES = 0
 	catch_error = 0
 	while curFES < maxFES:
+		if len(errors) != 0:
+			if errors[-1] < 10**(-8):
+				break
+
 		for j in range(popsize):
 			p_selected = pop[select_rand(popsize)]
 			p2 = pop[select_rand(popsize)]
@@ -30,13 +35,18 @@ def de_ref():
 			mutate = p_selected + f * (p2 - p3)
 			mutate = bounds(mutate)
 			cross = crossover(pop[j], mutate, cr)
-			pop[j], curFES = tournament(pop[j], cross, curFES)
-	print(pop)
+			pop_next[j], curFES = tournament(pop[j], cross, curFES)
+		pop = pop_next.copy()
+	print(pop_next)
 
 # varaint A
-def de_A(): 
+def de_A(pop, pop_next): 
 	curFES = 0
 	while curFES < maxFES:
+		if len(errors) != 0:
+			if errors[-1] < 10**(-8):
+				break
+
 		for j in range(popsize):
 			winner, curFES = select_tour(pop, popsize, curFES)
 			p_selected = pop[winner]
@@ -45,11 +55,12 @@ def de_A():
 			mutate = p_selected + f * (p2 - p3)
 			mutate = bounds(mutate)
 			cross = crossover(pop[j], mutate, cr)
-			pop[j], curFES = tournament(pop[j], cross, curFES)
-	print(pop)
+			pop_next[j], curFES = tournament(pop[j], cross, curFES)
+		pop = pop_next.copy()
+	print(pop_next)
 
 # varaint B
-def de_B():
+def de_B(pop, pop_next):
 	curFES = 0
 	while curFES < maxFES:
 		for j in range(popsize):
@@ -58,13 +69,18 @@ def de_B():
 			p3 = pop[select_rand(popsize)]
 			mutate = p_selected + f * (p2 - p3)
 			mutate = bounds(mutate)
-			pop[j] = crossover(pop[j], mutate, cr)
-	print(pop)
+			pop_next[j] = crossover(pop[j], mutate, cr)
+		pop = pop_next.copy()
+	print(pop_next)
 
 # varaint C
-def de_C(): 
+def de_C(pop, pop_next): 
 	curFES = 0
 	while curFES < maxFES:
+		if len(errors) != 0:
+			if errors[-1] < 10**(-8):
+				break
+
 		for j in range(popsize):
 			winner, curFES = select_tour(pop, popsize, curFES)
 			p_selected = pop[winner]
@@ -72,8 +88,9 @@ def de_C():
 			p3 = pop[select_rand(popsize)]
 			mutate = p_selected + f * (p2 - p3)
 			mutate = bounds(mutate)
-			pop[j] = crossover(pop[j], mutate, cr)
-	print(pop)
+			pop_next[j] = crossover(pop[j], mutate, cr)
+		pop = pop_next.copy()
+	print(pop_next)
 
 # auxiliary functions
 
@@ -252,7 +269,7 @@ def discus_function(individual):
 set_seed(len(pop[0]), func_no, Runs, run_id)	
 error_points = calculate_error_points(dimensions)
 
-de_ref()
-#de_A(lambda x: np.exp(x))
-#de_B(lambda x: np.exp(x))
-#de_C(lambda x: np.exp(x))
+de_ref(pop, pop_next)
+#de_A(pop, pop_next)
+#de_B(pop, pop_next)
+#de_C(pop, pop_next)
