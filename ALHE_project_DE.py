@@ -3,13 +3,16 @@
 import numpy as np
 import math
 
+DIMENSIONS = 10
+FUNCTION_NUMBER = 1
+
 # load basic population, seed list and parameters
-pop = np.loadtxt('M_1_D10.txt')
+pop = np.loadtxt(f'input_data/M_{FUNCTION_NUMBER}_D{DIMENSIONS}.txt')
 pop_next = pop.copy()
-seeds = np.loadtxt('Rand_Seeds.txt')
+seeds = np.loadtxt('input_data/Rand_Seeds.txt')
 popsize = len(pop)
 dimensions = len(pop[0])
-func_no = 1
+func_no = FUNCTION_NUMBER
 Runs = 30
 run_id = 1
 f = 0.8
@@ -17,9 +20,9 @@ cr = 0.7
 maxFES = 200000
 errors = []
 
-M = np.identity(dimensions)
-oi = 0
-Fi = 0
+M = pop.copy()
+oi = np.loadtxt(f'input_data/shift_data_{FUNCTION_NUMBER}.txt')[:dimensions]
+Fi = [100, 1100, 700, 1900, 1700, 1600, 2100, 2200, 2400, 2500]
 
 # differential evolution algorithm DE/rand/1/bin
 
@@ -44,7 +47,7 @@ def de_ref(pop, pop_next):
 	print(pop_next)
 
 # varaint A
-def de_A(pop, pop_next): 
+def de_A(pop, pop_next):
 	curFES = 0
 	while curFES < maxFES:
 		if len(errors) != 0:
@@ -78,7 +81,7 @@ def de_B(pop, pop_next):
 	print(pop_next)
 
 # varaint C
-def de_C(pop, pop_next): 
+def de_C(pop, pop_next):
 	curFES = 0
 	while curFES < maxFES:
 		if len(errors) != 0:
@@ -108,9 +111,9 @@ def select_tour(pop, popsize, curFES):
 	p2 = np.random.randint(popsize)
 	fitness1 = pick_fun(func_no, pop[p1], curFES)
 	fitness2 = pick_fun(func_no, pop[p2], curFES)
-	if fitness1 < fitness2: 
+	if fitness1 < fitness2:
 		return p1, curFES
-	else: 
+	else:
 		return p2, curFES
 
 # keeping points inside bounds
@@ -138,9 +141,9 @@ def crossover(original, mutate, cr):
 def tournament(original, cross, curFES):
 	fitness1, curFES = pick_fun(func_no, original, curFES)
 	fitness2, curFES = pick_fun(func_no, cross, curFES)
-	if fitness1 < fitness2: 
+	if fitness1 < fitness2:
 		return original, curFES
-	else: 
+	else:
 		return cross, curFES
 
 # setting seed for random function
@@ -154,7 +157,7 @@ def pick_fun(func_no, individual, curFES):
 	if func_no == 1:
 		fitness_value = bent_cigar_mod(individual)
 	elif func_no == 2:
-		fitness_value = rastrigins_function(individual)
+		fitness_value = schwefels_mod(individual)
 	elif func_no == 3:
 		fitness_value = high_conditioned_elliptic_function(individual)
 	elif func_no == 4:
@@ -205,7 +208,7 @@ def high_conditioned_elliptic_function(individual):
 	fitness_value = 0
 	for i in range(dimensions):
 		temp = (i)/(dimensions-1)
-		fitness_value += 10**(6*temp) * individual[i]**2 
+		fitness_value += 10**(6*temp) * individual[i]**2
 	return fitness_value
 
 # definition of basic function 4
@@ -217,13 +220,13 @@ def hgbat_function(individual):
 		square += individual[i]**2
 		summ += individual[i]
 	fitness_value = abs(square**2 - summ**2)**(1/2) + (0.5 * square + summ)/dimensions + 0.5
-	return fitness_value	
+	return fitness_value
 
 # definition of basic function 5
 def rosenbrocks_function(individual):
 	fitness_value = 0
 	for i in range(dimensions-1):
-		fitness_value += 100 * (individual[i]**2 - individual[i+1])**2 + (individual[i] - 1)**2 
+		fitness_value += 100 * (individual[i]**2 - individual[i+1])**2 + (individual[i] - 1)**2
 	return fitness_value
 
 # definition of basic function 6
@@ -245,8 +248,8 @@ def ackleys_function(individual):
 		temp1 += individual[i]**2
 		temp2 += math.cos(2 * math.pi * individual[i])
 	temp1 = -0.2 * ((temp1 / dimensions)**(1/2))
-	temp2 = temp2 / dimensions	
-	fitness_value = -20 * math.exp(temp1) - math.exp(temp2) + 20 + math.e 
+	temp2 = temp2 / dimensions
+	fitness_value = -20 * math.exp(temp1) - math.exp(temp2) + 20 + math.e
 	return fitness_value
 
 # definition of basic function 8
@@ -256,7 +259,7 @@ def happycat_function(individual):
 	summ = 0
 	for i in range(dimensions):
 		square += individual[i]**2
-		summ += individual[i]	
+		summ += individual[i]
 	fitness_value = abs(square - dimensions)**(1/4) + (0.5 * square + summ)/dimensions + 0.5
 	return fitness_value
 
@@ -268,6 +271,7 @@ def discus_function(individual):
 	return fitness_value
 
 # definition of basic function 11
+
 def modified_schwefels_function(individual):
 	fitness_value = 0
 	for i in range(dimensions):
@@ -277,7 +281,7 @@ def modified_schwefels_function(individual):
 		elif zi > 500:
 			gzi = (500 - zi % 500) * math.sin((abs(500 - zi % 500)**(1/2)) - ((zi - 500)**(1/2)) / (10000 * dimensions))
 		else:
-			gzi = (abs(zi) % 500 - 500) * sin((abs(abs(zi) % 500 - 500))**(1/2)) - ((zi + 500)**2) / (10000 * dimensions)
+			gzi = (abs(zi) % 500 - 500) * math.sin((abs(abs(zi) % 500 - 500))**(1/2)) - ((zi + 500)**2) / (10000 * dimensions)
 
 		fitness_value -= gzi
 	return fitness_value + 418.9829 * dimensions
@@ -286,12 +290,16 @@ def modified_schwefels_function(individual):
 
 # 1
 def bent_cigar_mod(individual):
-	return bent_cigar_function(M.dot(individual) - oi) - Fi
+	return bent_cigar_function(M.dot(individual) - oi) - Fi[0]
+
+# 2
+def schwefels_mod(individual):
+	return modified_schwefels_function(M.dot(10 * (individual - oi))) + Fi[1]
 
 # calling functions
 
 
-set_seed(len(pop[0]), func_no, Runs, run_id)	
+set_seed(len(pop[0]), func_no, Runs, run_id)
 error_points = calculate_error_points(dimensions)
 
 de_ref(pop, pop_next)
