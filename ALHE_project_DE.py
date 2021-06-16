@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
+import statistics
 
 import numpy as np
 import math
 
-DIMENSIONS = 10
+DIMENSIONS = 20
 FUNCTION_NUMBER = 1
-
+ROTATION = False
+SHIFT = False
+BIAS = False
 
 # load basic population, seed list and parameters
 pop = np.loadtxt(f'input_data/M_{FUNCTION_NUMBER}_D{DIMENSIONS}.txt')
@@ -16,14 +19,15 @@ dimensions = len(pop[0])
 func_no = FUNCTION_NUMBER
 Runs = 30
 run_id = 1
-f = 0.8
-cr = 0.7
+f = 0.7
+cr = 0.9
 maxFES = 200000
 errors = []
 
-M = pop.copy()
-oi = np.loadtxt(f'input_data/shift_data_{FUNCTION_NUMBER}.txt')[:dimensions]
-Fi = [100, 1100, 700, 1900, 1700, 1600, 2100, 2200, 2400, 2500]
+M = np.loadtxt(f'input_data/M_{FUNCTION_NUMBER}_D{DIMENSIONS}_nr.txt') if ROTATION else np.identity(dimensions)
+oi = np.loadtxt(f'input_data/shift_data_{FUNCTION_NUMBER}.txt')[:dimensions] if SHIFT else np.zeros(dimensions)
+
+Fi = [100, 1100] if BIAS else [0, 0]
 
 # differential evolution algorithm DE/rand/1/bin
 
@@ -45,7 +49,7 @@ def de_ref(pop, pop_next):
 			cross = crossover(pop[j], mutate, cr)
 			pop_next[j], curFES = tournament(pop[j], cross, curFES)
 		pop = pop_next.copy()
-	print(pop_next)
+	# print(pop_next)
 
 # varaint A
 def de_A(pop, pop_next):
@@ -65,7 +69,7 @@ def de_A(pop, pop_next):
 			cross = crossover(pop[j], mutate, cr)
 			pop_next[j], curFES = tournament(pop[j], cross, curFES)
 		pop = pop_next.copy()
-	print(pop_next)
+	# print(pop_next)
 
 # varaint B
 def de_B(pop, pop_next):
@@ -78,6 +82,8 @@ def de_B(pop, pop_next):
 			mutate = p_selected + f * (p2 - p3)
 			mutate = bounds(mutate)
 			pop_next[j] = crossover(pop[j], mutate, cr)
+			temp = bent_cigar_mod(pop[j])
+			print(temp)
 		pop = pop_next.copy()
 	print(pop_next)
 
@@ -97,6 +103,8 @@ def de_C(pop, pop_next):
 			mutate = p_selected + f * (p2 - p3)
 			mutate = bounds(mutate)
 			pop_next[j] = crossover(pop[j], mutate, cr)
+			temp = bent_cigar_mod(pop[j])
+			print(temp)
 		pop = pop_next.copy()
 	print(pop_next)
 
@@ -175,7 +183,7 @@ def calculate_error_points(dimensions):
 # definition of basic function 1
 def bent_cigar_function(individual):
 	fitness_value = individual[0]**2
-	for i in range(1,dimensions):
+	for i in range(1, dimensions):
 		fitness_value += individual[i]**2 * 10**6
 	return fitness_value
 
@@ -190,7 +198,7 @@ def rastrigins_function(individual):
 def high_conditioned_elliptic_function(individual):
 	fitness_value = 0
 	for i in range(dimensions):
-		temp = (i - 1) / (dimensions-1)
+		temp = i / (dimensions-1)
 		fitness_value += 10**(6*temp) * individual[i]**2
 	return fitness_value
 
@@ -273,7 +281,7 @@ def modified_schwefels_function(individual):
 
 # 1
 def bent_cigar_mod(individual):
-	return bent_cigar_function(M.dot(individual) - oi) - Fi[0]
+	return bent_cigar_function(M.dot(individual) - oi) + Fi[0]
 
 # 2
 def schwefels_mod(individual):
@@ -297,7 +305,20 @@ functions = {
 set_seed(len(pop[0]), func_no, Runs, run_id)
 error_points = calculate_error_points(dimensions)
 
-de_ref(pop, pop_next)
-#de_A(pop, pop_next)
-#de_B(pop, pop_next)
-#de_C(pop, pop_next)
+all_errors = []
+
+for i in range(1, 31):
+	run_id = i
+	errors = []
+	pop = np.loadtxt( f'input_data/M_{FUNCTION_NUMBER}_D{DIMENSIONS}.txt' )
+	pop_next = pop.copy()
+	# de_ref(pop, pop_next)
+	de_A( pop, pop_next )
+	# de_B(pop, pop_next)
+	# de_C(pop, pop_next)
+	print( errors[ -1 ] )
+	all_errors.append(errors[-1])
+
+print(all_errors)
+print(f"max = {max(all_errors)}\nmin = {min(all_errors)}\navg = {sum(all_errors) / len(all_errors)}\nmedian = {statistics.median(all_errors)}")
+
