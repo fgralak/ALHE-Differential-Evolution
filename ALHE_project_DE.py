@@ -63,6 +63,10 @@ def de_A(pop, pop_next):
 def de_B(pop, pop_next):
 	curFES = 0
 	while curFES < maxFES:
+		if len(errors) != 0:
+			if errors[-1] < 10**(-8):
+				break
+
 		for j in range(popsize):
 			p_selected = pop[select_rand(popsize)]
 			p2 = pop[select_rand(popsize)]
@@ -70,6 +74,7 @@ def de_B(pop, pop_next):
 			mutate = p_selected + f * (p2 - p3)
 			mutate = bounds(mutate)
 			pop_next[j] = crossover(pop[j], mutate, cr)
+			fitness_value, curFES = pick_fun(func_no, pop_next[j], curFES)
 		pop = pop_next.copy()
 	print(pop_next)
 
@@ -89,6 +94,7 @@ def de_C(pop, pop_next):
 			mutate = p_selected + f * (p2 - p3)
 			mutate = bounds(mutate)
 			pop_next[j] = crossover(pop[j], mutate, cr)
+			fitness_value, curFES = pick_fun(func_no, pop_next[j], curFES)
 		pop = pop_next.copy()
 	print(pop_next)
 
@@ -269,7 +275,7 @@ def discus_function(individual):
 set_seed(len(pop[0]), func_no, Runs, run_id)	
 error_points = calculate_error_points(dimensions)
 
-de_ref(pop, pop_next)
+#de_ref(pop, pop_next)
 #de_A(pop, pop_next)
 #de_B(pop, pop_next)
 #de_C(pop, pop_next)
