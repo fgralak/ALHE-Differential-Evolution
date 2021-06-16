@@ -6,6 +6,7 @@ import math
 DIMENSIONS = 10
 FUNCTION_NUMBER = 1
 
+
 # load basic population, seed list and parameters
 pop = np.loadtxt(f'input_data/M_{FUNCTION_NUMBER}_D{DIMENSIONS}.txt')
 pop_next = pop.copy()
@@ -154,26 +155,8 @@ def set_seed(dimensions, func_no, Runs, run_id):
 
 # picking corrent fitness function
 def pick_fun(func_no, individual, curFES):
-	if func_no == 1:
-		fitness_value = bent_cigar_mod(individual)
-	elif func_no == 2:
-		fitness_value = schwefels_mod(individual)
-	elif func_no == 3:
-		fitness_value = high_conditioned_elliptic_function(individual)
-	elif func_no == 4:
-		fitness_value = hgbat_function(individual)
-	elif func_no == 5:
-		fitness_value = rosenbrocks_function(individual)
-	elif func_no == 6:
-		fitness_value = griewanks_function(individual)
-	elif func_no == 7:
-		fitness_value = ackleys_function(individual)
-	elif func_no == 8:
-		fitness_value = happycat_function(individual)
-	elif func_no == 9:
-		fitness_value = discus_function(individual)
-	else:
-		print('ERROR')
+	func = functions[func_no]
+	fitness_value = func(individual)
 	curFES += 1
 	for i in range(16):
 		if error_points[i] == curFES:
@@ -207,7 +190,7 @@ def rastrigins_function(individual):
 def high_conditioned_elliptic_function(individual):
 	fitness_value = 0
 	for i in range(dimensions):
-		temp = (i)/(dimensions-1)
+		temp = (i - 1) / (dimensions-1)
 		fitness_value += 10**(6*temp) * individual[i]**2
 	return fitness_value
 
@@ -296,8 +279,20 @@ def bent_cigar_mod(individual):
 def schwefels_mod(individual):
 	return modified_schwefels_function(M.dot(10 * (individual - oi))) + Fi[1]
 
-# calling functions
 
+functions = {
+	1: bent_cigar_mod,
+	2: schwefels_mod,
+	3: high_conditioned_elliptic_function,
+	4: hgbat_function,
+	5: rosenbrocks_function,
+	6: griewanks_function,
+	7: ackleys_function,
+	8: happycat_function,
+	9: discus_function,
+}
+
+# calling functions
 
 set_seed(len(pop[0]), func_no, Runs, run_id)
 error_points = calculate_error_points(dimensions)
